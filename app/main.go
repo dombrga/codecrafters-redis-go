@@ -30,8 +30,8 @@ func main() {
 
 	// conn.Write([]byte("+PONG\r\n"))
 	for {
-		var b []byte
-		conn.Read(b)
+		buf := make([]byte, 1024)
+		conn.Read(buf)
 		conn.Write([]byte("+PONG\r\n"))
 	}
 
