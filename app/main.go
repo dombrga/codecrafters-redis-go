@@ -29,20 +29,25 @@ func main() {
 	}
 
 	// conn.Write([]byte("+PONG\r\n"))
-
-	cmdChan := make(chan string)
-	go func() {
-		for {
-			var cmd string
-			fmt.Scanln(&cmd)
-			cmdChan <- cmd
-		}
-	}()
-
-	for range cmdChan {
-		// fmt.Println("received:", cmd)
+	for {
+		var b []byte
+		conn.Read(b)
 		conn.Write([]byte("+PONG\r\n"))
 	}
+
+	// cmdChan := make(chan string)
+	// go func() {
+	// 	for {
+	// 		var cmd string
+	// 		fmt.Scanln(&cmd)
+	// 		cmdChan <- cmd
+	// 	}
+	// }()
+
+	// for cmd := range cmdChan {
+	// 	// fmt.Println("received:", cmd)
+	// 	conn.Write([]byte("+PONG\r\n"))
+	// }
 }
 
 // scanner := bufio.NewScanner(os.Stdin)
