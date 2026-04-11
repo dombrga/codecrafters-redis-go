@@ -28,5 +28,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn.Write([]byte("+PONG\r\n"))
+	// conn.Write([]byte("+PONG\r\n"))
+
+	cmdChan := make(chan string)
+	go func() {
+		for {
+			var cmd string
+			fmt.Scanln(&cmd)
+			cmdChan <- cmd
+		}
+	}()
+
+	for range cmdChan {
+		// fmt.Println("received:", cmd)
+		conn.Write([]byte("+PONG\r\n"))
+	}
 }
+
+// scanner := bufio.NewScanner(os.Stdin)
+// fmt.Println("Enter input (type 'exit' to quit):")
+// for scanner.Scan() {
+// 	text := scanner.Text()
+// 	if text == "exit" {
+// 		break
+// 	}
+// 	fmt.Println("You entered:", text)
+// }
