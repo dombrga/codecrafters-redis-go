@@ -22,40 +22,50 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
-
-	// conn.Write([]byte("+PONG\r\n"))
 	for {
-		buf := make([]byte, 1024)
-		conn.Read(buf)
-		conn.Write([]byte("+PONG\r\n"))
+		// Accept method is blocking.
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			os.Exit(1)
+		}
+
+		// Once connection is accepted, handle the connection in a goroutine
+		// to prevent blocking incoming new connnections
+		go func(conn net.Conn) {
+			defer conn.Close()
+			for {
+				b := make([]byte, 1024)
+				conn.Read(b)
+				conn.Write([]byte("+PONG\r\n"))
+			}
+		}(conn)
 	}
 
-	// cmdChan := make(chan string)
-	// go func() {
-	// 	for {
-	// 		var cmd string
-	// 		fmt.Scanln(&cmd)
-	// 		cmdChan <- cmd
-	// 	}
-	// }()
+	// for {
+	// 	conn, err := l.Accept()
 
-	// for cmd := range cmdChan {
-	// 	// fmt.Println("received:", cmd)
+	// 	cmdChan := make(chan []byte)
+	// 	go func() {
+	// 		for {
+	// 			// var cmd string
+	// 			buf := make([]byte, 1024)
+	// 			conn.Read(buf)
+	// 			// fmt.Scanln(&cmd)
+	// 			cmdChan <- buf
+	// 		}
+	// 		for range cmdChan {
+	// 			// fmt.Println("received:", cmd)
+	// 			conn.Write([]byte("+PONG\r\n"))
+	// 		}
+	// 	}()
+
+	// }
+
+	// for {
+	// 	buf := make([]byte, 1024)
+	// 	conn.Read(buf)
 	// 	conn.Write([]byte("+PONG\r\n"))
 	// }
-}
 
-// scanner := bufio.NewScanner(os.Stdin)
-// fmt.Println("Enter input (type 'exit' to quit):")
-// for scanner.Scan() {
-// 	text := scanner.Text()
-// 	if text == "exit" {
-// 		break
-// 	}
-// 	fmt.Println("You entered:", text)
-// }
+}
