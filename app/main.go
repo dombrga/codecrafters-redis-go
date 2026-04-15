@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -30,14 +31,17 @@ func main() {
 			os.Exit(1)
 		}
 
-		// Once connection is accepted, handle the connection in a goroutine
-		// to prevent blocking incoming new connnections
+		// Once connection is accepted, open a goroutine to handle the
+		// connection to prevent blocking incoming new connnections.
 		go func(conn net.Conn) {
 			defer conn.Close()
 			for {
 				b := make([]byte, 1024)
 				conn.Read(b)
-				conn.Write([]byte("+PONG\r\n"))
+
+				resp := handleCommandResponse(b)
+				fmt.Println("resp", resp)
+				conn.Write([]byte(resp))
 			}
 		}(conn)
 	}
@@ -67,5 +71,52 @@ func main() {
 	// 	conn.Read(buf)
 	// 	conn.Write([]byte("+PONG\r\n"))
 	// }
+
+}
+
+func handleCommandResponse(_input []byte) string {
+	res := getRESPString(_input)
+	// fmt.Println("res", res)
+
+	// switch cmd {
+	// case "ECHO":
+	// 	// fmt.Println("echoing")
+	// 	return res
+	// }
+
+	return res
+}
+
+func getRESPString(_input []byte) string {
+	// The input is a Redis RESP Array of bulk string, that is, *<number-of-elements>\r\n<element-1>...<element-n>.
+	input := string(_input)
+
+	respInput := strings.Split(input, "\r\n")
+	fmt.Printf("zxc %d %q\n", len(respInput), respInput)
+
+	var cmd string
+	// The command used is the 3rd element.
+	if len(respInput) > 2 {
+		cmd = respInput[2]
+	}
+	fmt.Printf("The command is %s\n", cmd)
+
+	switch cmd {
+	case "PING":
+		return "+PONG\r\n"
+	case "ECHO":
+		arg := respInput[4]
+
+		// return in the format of Redis bulk string, that is, $<length>\r\n<data>\r\n.
+		res := fmt.Sprintf("$%d\r\n%s\r\n", len(arg), arg)
+		fmt.Printf("res is: %q\v", res)
+		return res
+	}
+
+	return ""
+
+}
+
+func handleEchoCmd() {
 
 }
