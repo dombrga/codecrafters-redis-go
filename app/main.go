@@ -39,7 +39,7 @@ func main() {
 				b := make([]byte, 1024)
 				conn.Read(b)
 
-				resp := handleCommandResponse(b)
+				resp := handleIncomingCommand(b)
 				fmt.Println("resp", resp)
 				conn.Write([]byte(resp))
 			}
@@ -74,28 +74,23 @@ func main() {
 
 }
 
-func handleCommandResponse(_input []byte) string {
-	res := getRESPString(_input)
+func handleIncomingCommand(_input []byte) string {
+	res := getResponse(_input)
 	// fmt.Println("res", res)
-
-	// switch cmd {
-	// case "ECHO":
-	// 	// fmt.Println("echoing")
-	// 	return res
-	// }
 
 	return res
 }
 
-func getRESPString(_input []byte) string {
-	// The input is a Redis RESP Array of bulk string, that is, *<number-of-elements>\r\n<element-1>...<element-n>.
+func getResponse(_input []byte) string {
+	// The input is a Redis RESP Array of bulk string,
+	// that is, *<number-of-elements>\r\n<element-1>...<element-n>.
 	input := string(_input)
 
 	respInput := strings.Split(input, "\r\n")
-	fmt.Printf("zxc %d %q\n", len(respInput), respInput)
+	// fmt.Printf("zxc %d %q\n", len(respInput), respInput)
 
 	var cmd string
-	// The command used is the 3rd element.
+	// The command used is in 2nd index.
 	if len(respInput) > 2 {
 		cmd = respInput[2]
 	}
@@ -105,18 +100,14 @@ func getRESPString(_input []byte) string {
 	case "PING":
 		return "+PONG\r\n"
 	case "ECHO":
-		arg := respInput[4]
-
-		// return in the format of Redis bulk string, that is, $<length>\r\n<data>\r\n.
-		res := fmt.Sprintf("$%d\r\n%s\r\n", len(arg), arg)
-		fmt.Printf("res is: %q\v", res)
-		return res
+		// ECHO argument is in 4th index.
+		return handleEchoCmd(respInput[4])
 	}
 
 	return ""
-
 }
 
-func handleEchoCmd() {
-
+func handleEchoCmd(arg string) string {
+	// return in the format of Redis bulk string, that is, $<length>\r\n<data>\r\n.
+	return fmt.Sprintf("$%d\r\n%s\r\n", len(arg), arg)
 }
