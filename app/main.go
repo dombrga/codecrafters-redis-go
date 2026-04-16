@@ -45,33 +45,6 @@ func main() {
 			}
 		}(conn)
 	}
-
-	// for {
-	// 	conn, err := l.Accept()
-
-	// 	cmdChan := make(chan []byte)
-	// 	go func() {
-	// 		for {
-	// 			// var cmd string
-	// 			buf := make([]byte, 1024)
-	// 			conn.Read(buf)
-	// 			// fmt.Scanln(&cmd)
-	// 			cmdChan <- buf
-	// 		}
-	// 		for range cmdChan {
-	// 			// fmt.Println("received:", cmd)
-	// 			conn.Write([]byte("+PONG\r\n"))
-	// 		}
-	// 	}()
-
-	// }
-
-	// for {
-	// 	buf := make([]byte, 1024)
-	// 	conn.Read(buf)
-	// 	conn.Write([]byte("+PONG\r\n"))
-	// }
-
 }
 
 func handleIncomingCommand(_input []byte) string {
@@ -89,11 +62,7 @@ func getResponse(_input []byte) string {
 	respInput := strings.Split(input, "\r\n")
 	// fmt.Printf("zxc %d %q\n", len(respInput), respInput)
 
-	var cmd string
-	// The command used is in 2nd index.
-	if len(respInput) > 2 {
-		cmd = respInput[2]
-	}
+	cmd := getCommand(respInput)
 	fmt.Printf("The command is %s\n", cmd)
 
 	switch cmd {
@@ -104,10 +73,18 @@ func getResponse(_input []byte) string {
 		return handleEchoCmd(respInput[4])
 	}
 
-	return ""
+	return "not a valid command"
 }
 
 func handleEchoCmd(arg string) string {
 	// return in the format of Redis bulk string, that is, $<length>\r\n<data>\r\n.
 	return fmt.Sprintf("$%d\r\n%s\r\n", len(arg), arg)
+}
+
+func getCommand(input []string) string {
+	// The command used is in 2nd index.
+	if len(input) > 2 {
+		return input[2]
+	}
+	return ""
 }
