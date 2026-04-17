@@ -29,7 +29,7 @@ func TestEchoCommand(t *testing.T) {
 }
 
 func TestSetCommandResponse(t *testing.T) {
-	arg := "*2\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$3\r\nwar\r\n$3\r\nsad\r\n"
+	arg := "*2\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n"
 
 	actual := handleIncomingCommand([]byte(arg))
 	expected := "+OK\r\n"
@@ -40,16 +40,16 @@ func TestSetCommandResponse(t *testing.T) {
 	}
 }
 
-// func TestSetKeyValueCommand(t *testing.T) {
-// 	arg := "*2\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$3\r\nwar\r\n$3\r\nsad\r\n"
+func TestSetKeyValueCommand(t *testing.T) {
+	arg := "*2\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n"
 
-// 	handleIncomingCommand([]byte(arg))
-// 	actual := rcache["foo"]
-// 	expected := "bar"
-// 	// fmt.Println("rcache", rcache)
-// 	// fmt.Println(actual, expected)
+	handleIncomingCommand([]byte(arg))
+	actual := rcache["foo"]
+	expected := "bar"
+	// fmt.Println("rcache", rcache)
+	// fmt.Println(actual, expected)
 
-// 	if actual != expected {
-// 		t.Errorf("expected %s, got %s", expected, actual)
-// 	}
-// }
+	if actual != expected {
+		t.Errorf("expected %s, got %s", expected, actual)
+	}
+}
