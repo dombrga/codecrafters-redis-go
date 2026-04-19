@@ -6,14 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/codecrafters-io/redis-starter-go/internal/redis"
+	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
+const REDIS_BULK_STRING = "$%d\r\n%s\r\n"
+
 type RedisCommandHandlers struct {
-	Store *redis.RedisStore
+	Store *store.RedisStore
 }
 
-func NewRedisCommandHandlers(r *redis.RedisStore) *RedisCommandHandlers {
+func NewRedisCommandHandlers(r *store.RedisStore) *RedisCommandHandlers {
 	return &RedisCommandHandlers{
 		Store: r,
 	}
@@ -21,7 +23,7 @@ func NewRedisCommandHandlers(r *redis.RedisStore) *RedisCommandHandlers {
 
 func (h *RedisCommandHandlers) HandleEchoCmd(arg string) string {
 	// return in the format of Redis bulk string, that is, $<length>\r\n<data>\r\n.
-	return fmt.Sprintf("$%d\r\n%s\r\n", len(arg), arg)
+	return fmt.Sprintf(REDIS_BULK_STRING, len(arg), arg)
 }
 
 func (h *RedisCommandHandlers) HandleSet(args []string) string {
@@ -45,11 +47,67 @@ func (h *RedisCommandHandlers) HandleSet(args []string) string {
 	return "+OK\r\n"
 }
 
-func (h *RedisCommandHandlers) HandleGet(args []string) redis.RedisValueType {
+func (h *RedisCommandHandlers) HandleGet(args []string) string {
 	v, err := h.Store.Get(args[0])
 	if err != nil {
-		return "$-1\r\n"
+		return string(v)
 	}
 
-	return v
+	return fmt.Sprintf(REDIS_BULK_STRING, len(v), v)
 }
+
+// func (h *RedisCommandHandlers) HandleSetCommand(respInput []string) string {
+// 	var currKey string
+
+// 	// TODO: use new redisStore value types and fix.
+// 	// key := RedisKey(respInput[4])
+// 	// val := RedisValue{
+// 	// 	Value: respInput[6],
+// 	// }
+
+// 	// isMSExpiry := respInput[8] == "PX"
+// 	// if isMSExpiry {
+// 	// 	s, err := strconv.ParseFloat(respInput[8], 64)
+// 	// 	// TODO
+// 	// 	if err != nil {
+// 	// 	}
+
+// 	// 	val.Expiry = time.Now().Add(time.Duration(float64(time.Millisecond) * s))
+// 	// }
+// 	// redisStore[key] = val
+
+// 	// Start loop after the command index.
+// 	for _, r := range respInput[3 : len(respInput)-1] {
+// 		/**
+// 			redis bulk string:
+// 			1st - length of next elem
+// 			2nd - SET
+// 			3rd - length of next elem
+// 			4th - key
+// 			5th - length of next elem
+// 			6th - value
+// 		**/
+// 		// combo := []any{}
+// 		// fmt.Println("kv", currKey, redisStore, r)
+// 		if string(r[0]) != "$" {
+// 			if currKey == "" {
+// 				currKey = r
+// 				redisStore[r] = nil
+// 			}
+
+// 			v, _ := redisStore[currKey]
+// 			// fmt.Println("setting", v, r, currKey)
+// 			if v == nil && r != currKey && string(r[0]) != "$" {
+// 				redisStore[currKey] = r
+// 				currKey = ""
+// 			}
+// 		}
+
+// 		// val = nil
+// 		// fmt.Println("-------------")
+// 	}
+
+// 	fmt.Println("redisStore", redisStore)
+
+// 	return "+OK\r\n"
+// }

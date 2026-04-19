@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/codecrafters-io/redis-starter-go/internal/handlers"
-	"github.com/codecrafters-io/redis-starter-go/internal/helpers"
-	"github.com/codecrafters-io/redis-starter-go/internal/redis"
+	"github.com/codecrafters-io/redis-starter-go/internal/parser"
+	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
 type RedisKey string
@@ -26,8 +26,8 @@ var _ = os.Exit
 
 var redisStore = map[string]any{}
 
-var redisStore1 = redis.RedisStore{
-	Items: map[redis.RedisEntryKey]redis.RedisEntryValue{},
+var redisStore1 = store.RedisStore{
+	Items: map[store.RedisEntryKey]store.RedisEntryValue{},
 }
 
 func main() {
@@ -80,7 +80,7 @@ func getResponse(_input []byte) string {
 	redisHandler := handlers.NewRedisCommandHandlers(&redisStore1)
 
 	// args = ["SET", "foo", "bar", "PX", "5000"]
-	args, _ := helpers.ParseRESP(_input)
+	args, _ := parser.ParseRESP(_input)
 	fmt.Println("args", args)
 
 	cmd := strings.ToUpper(args[0])
@@ -93,9 +93,9 @@ func getResponse(_input []byte) string {
 		return redisHandler.HandleEchoCmd(args[1])
 	case "SET":
 		return redisHandler.HandleSet(args[1:])
-		// case "GET":
-		// 	// ECHO argument is in 4th index.
-		// 	return handleGetCommand(args)
+	case "GET":
+		// ECHO argument is in 4th index.
+		return redisHandler.HandleGet(args[1:])
 	}
 
 	return "not a valid command"

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -33,7 +34,7 @@ func TestEchoCommand(t *testing.T) {
 
 func TestSetCommandResponse(t *testing.T) {
 	// arg := "*2\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n"
-	arg := "*5\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$2\r\nPX\r\n$3\r\n100"
+	arg := "*4\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$2\r\n"
 
 	expected := "+OK\r\n"
 	actual := handleIncomingCommand([]byte(arg))
@@ -53,26 +54,25 @@ func TestSetKeyValueCommand(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected %s, got %s", "$-1\\r\\n", actual)
 	}
+	fmt.Println("entry:", actual)
 
 	if string(actual) != expected {
 		t.Errorf("expected %s, got %s", expected, actual)
 	}
 }
 
-// func TestSetWithPXValueCommand(t *testing.T) {
-// 	arg := "*2\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$2\r\nPX\r\n$3\r\n100"
+func TestSetWithEXValueCommand(t *testing.T) {
+	arg := "*5\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n$2\r\nEX\r\n$3\r\n100"
+	handleIncomingCommand([]byte(arg))
 
-// 	handleIncomingCommand([]byte(arg))
-// 	actual := redisStore["foo"]
-// 	expected := "bar"
-// 	// expected := RedisValue{
-// 	// 	Value: "bar",
-// 	// 	// Expiry: time.Now(),
-// 	// }
-// 	// fmt.Println("redisStore", redisStore)
-// 	// fmt.Println(actual, expected)
+	expected := "bar"
+	actual, err := redisStore1.Get("foo")
+	if err != nil {
+		t.Errorf("expected %s, got %s", "$-1\\r\\n", actual)
+	}
+	// fmt.Println("entry:", actual)
 
-// 	if actual != expected {
-// 		t.Errorf("expected %s, got %s", expected, actual)
-// 	}
-// }
+	if string(actual) != expected {
+		t.Errorf("expected %s, got %s", expected, actual)
+	}
+}
