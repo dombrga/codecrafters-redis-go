@@ -5,12 +5,24 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/codecrafters-io/redis-starter-go/internal/helpers"
 )
+
+type RedisKey string
+type RedisValue struct {
+	Value  any
+	Expiry time.Time
+}
+
+type RCache map[RedisKey]RedisValue
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
 var _ = net.Listen
 var _ = os.Exit
-var rcache = map[string]any{}
+
+var redisStore = map[string]any{}
 
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -59,15 +71,18 @@ func handleIncomingCommand(_input []byte) string {
 }
 
 func getResponse(_input []byte) string {
+	// args = ["SET", "foo", "bar", "PX", "5000"]
+	args, _ := helpers.ParseRESP(_input)
+	fmt.Println("args", args)
 	// The input is a Redis RESP Array of bulk string,
 	// that is, *<number-of-elements>\r\n<element-1>...<element-n>.
-	input := string(_input)
-	fmt.Printf("input here %q \n", input)
+	// input := string(_input)
+	// fmt.Printf("input here %q \n", input)
 
-	respInput := strings.Split(input, "\r\n")
-	// fmt.Printf("zxc %d %q\n", len(respInput), respInput)
+	// respInput := strings.Split(input, "\r\n")
+	// fmt.Printf("respInput %d %q\n", len(respInput), respInput)
 
-	cmd := getCommand(respInput)
+	cmd := strings.ToUpper(args[0])
 	fmt.Printf("The command is %s\n", cmd)
 
 	switch cmd {
@@ -75,12 +90,12 @@ func getResponse(_input []byte) string {
 		return "+PONG\r\n"
 	case "ECHO":
 		// ECHO argument is in 4th index.
-		return handleEchoCmd(respInput[4])
-	case "SET":
-		return handleSetCommand(respInput)
-	case "GET":
-		// ECHO argument is in 4th index.
-		return handleGetCommand(respInput)
+		return handleEchoCmd(args[1])
+		// case "SET":
+		// 	return handleSetCommand(args)
+		// case "GET":
+		// 	// ECHO argument is in 4th index.
+		// 	return handleGetCommand(args)
 	}
 
 	return "not a valid command"
@@ -99,23 +114,63 @@ func getCommand(input []string) string {
 	return ""
 }
 
+func handleGetCommand(respInput []string) string {
+	val, ok := redisStore[respInput[4]]
+	// val, ok := redisStore[RedisKey(respInput[4])]
+	if !ok {
+		return "$-1\r\n"
+	}
+
+	// v, ok := val.Value.(string)
+	// if !ok {
+	// 	return "$-1\r\n"
+	// }
+	return fmt.Sprintf("$%d\r\n%s\r\n", len(val.(string)), val)
+}
+
 func handleSetCommand(respInput []string) string {
 	var currKey string
-	// var val any
+
+	// TODO: use new redisStore value types and fix.
+	// key := RedisKey(respInput[4])
+	// val := RedisValue{
+	// 	Value: respInput[6],
+	// }
+
+	// isMSExpiry := respInput[8] == "PX"
+	// if isMSExpiry {
+	// 	s, err := strconv.ParseFloat(respInput[8], 64)
+	// 	// TODO
+	// 	if err != nil {
+	// 	}
+
+	// 	val.Expiry = time.Now().Add(time.Duration(float64(time.Millisecond) * s))
+	// }
+	// redisStore[key] = val
 
 	// Start loop after the command index.
 	for _, r := range respInput[3 : len(respInput)-1] {
-		// fmt.Println("kv", currKey, rcache, r)
+		/**
+			redis bulk string:
+			1st - length of next elem
+			2nd - SET
+			3rd - length of next elem
+			4th - key
+			5th - length of next elem
+			6th - value
+		**/
+		// combo := []any{}
+		// fmt.Println("kv", currKey, redisStore, r)
 		if string(r[0]) != "$" {
 			if currKey == "" {
 				currKey = r
-				rcache[r] = nil
+				redisStore[r] = nil
 			}
 
-			v, _ := rcache[currKey]
+			v, _ := redisStore[currKey]
 			// fmt.Println("setting", v, r, currKey)
 			if v == nil && r != currKey && string(r[0]) != "$" {
-				rcache[currKey] = r
+				redisStore[currKey] = r
 				currKey = ""
 			}
 		}
@@ -124,16 +179,7 @@ func handleSetCommand(respInput []string) string {
 		// fmt.Println("-------------")
 	}
 
-	fmt.Println("rcache", rcache)
+	fmt.Println("redisStore", redisStore)
 
 	return "+OK\r\n"
-}
-
-func handleGetCommand(respInput []string) string {
-	val, ok := rcache[respInput[4]]
-	if !ok {
-		return "$-1\r\n"
-	}
-
-	return fmt.Sprintf("$%d\r\n%s\r\n", len(val.(string)), val)
 }
