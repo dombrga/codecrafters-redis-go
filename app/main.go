@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/codecrafters-io/redis-starter-go/internal/handlers"
 	"github.com/codecrafters-io/redis-starter-go/internal/helpers"
 )
 
@@ -90,7 +91,7 @@ func getResponse(_input []byte) string {
 		return "+PONG\r\n"
 	case "ECHO":
 		// ECHO argument is in 4th index.
-		return handleEchoCmd(args[1])
+		return handlers.HandleEchoCmd(args[1])
 		// case "SET":
 		// 	return handleSetCommand(args)
 		// case "GET":
