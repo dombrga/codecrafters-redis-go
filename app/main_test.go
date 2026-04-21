@@ -6,9 +6,6 @@ import (
 )
 
 func TestPingCommand(t *testing.T) {
-	// var redisStore1 redis.RedisStore
-	// redisHandler := handlers.NewRedisCommandHandlers(&redisStore1)
-
 	arg := "*1\r\n$4\r\nPING\r\n"
 
 	actual := handleIncomingCommand([]byte(arg))

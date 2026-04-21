@@ -77,14 +77,14 @@ func handleIncomingCommand(_input []byte) string {
 }
 
 func getResponse(_input []byte) string {
-	redisHandler := handlers.NewRedisCommandHandlers(&redisStore1)
+	redisHandler := handlers.NewRedisHandler(&redisStore1)
 
 	// args = ["SET", "foo", "bar", "PX", "5000"]
 	args, _ := parser.ParseRESP(_input)
 	fmt.Println("args", args)
 
 	cmd := strings.ToUpper(args[0])
-	fmt.Printf("The command is %s\n", cmd)
+	// fmt.Printf("The command is %s\n", cmd)
 
 	switch cmd {
 	case "PING":
@@ -94,7 +94,6 @@ func getResponse(_input []byte) string {
 	case "SET":
 		return redisHandler.HandleSet(args[1:])
 	case "GET":
-		// ECHO argument is in 4th index.
 		return redisHandler.HandleGet(args[1:])
 	}
 

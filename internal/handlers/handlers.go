@@ -15,7 +15,7 @@ type RedisCommandHandlers struct {
 	Store *store.RedisStore
 }
 
-func NewRedisCommandHandlers(r *store.RedisStore) *RedisCommandHandlers {
+func NewRedisHandler(r *store.RedisStore) *RedisCommandHandlers {
 	return &RedisCommandHandlers{
 		Store: r,
 	}
