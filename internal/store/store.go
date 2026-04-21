@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const NULL_BULK_STRING = "$-1\r\n"
+
 type RedisEntryKey string
 type RedisValueType string
 
@@ -32,15 +34,12 @@ func (store *RedisStore) Set(key string, value string, ttl time.Duration) {
 func (store *RedisStore) Get(key string) (RedisValueType, error) {
 	v, ok := store.Items[RedisEntryKey(key)]
 	if !ok {
-		return "$-1\r\n", errors.New("key does not exist")
+		return NULL_BULK_STRING, errors.New("key does not exist")
 	}
-
-	// fmt.Println("redis entry:", v, v.expiresAt.Local().Format(time.RFC3339))
-	// fmt.Println("time now:", time.Now().Local().Format(time.RFC3339))
 
 	isExpired := store.IsEntryExpired(v)
 	if isExpired {
-		return "$-1\r\n", errors.New("key expired")
+		return NULL_BULK_STRING, errors.New("key expired")
 	}
 
 	return v.value, nil
