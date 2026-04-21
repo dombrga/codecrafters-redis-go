@@ -24,7 +24,7 @@ type RCache map[RedisKey]RedisValue
 var _ = net.Listen
 var _ = os.Exit
 
-var redisStore = map[string]any{}
+// var redisStore = map[string]any{}
 
 var redisStore1 = store.RedisStore{
 	Items: map[store.RedisEntryKey]store.RedisEntryValue{},
@@ -95,6 +95,8 @@ func getResponse(_input []byte) string {
 		return redisHandler.HandleSet(args[1:])
 	case "GET":
 		return redisHandler.HandleGet(args[1:])
+	case "RPUSH":
+		return redisHandler.HandleRPush(args[1:])
 	}
 
 	return "not a valid command"

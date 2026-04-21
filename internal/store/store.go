@@ -2,16 +2,20 @@ package store
 
 import (
 	"errors"
+	"strconv"
 	"time"
 )
 
-const NULL_BULK_STRING = "$-1\r\n"
+const REDIS_NULL_BULK_STRING = "$-1\r\n"
 
 type RedisEntryKey string
 type RedisValueType string
 
+// type RedisValueType interface { string | []string | int | float64 }
+// type RedisValueType1
+
 type RedisEntryValue struct {
-	value     RedisValueType
+	value     any
 	expiresAt time.Time
 }
 
@@ -34,15 +38,37 @@ func (store *RedisStore) Set(key string, value string, ttl time.Duration) {
 func (store *RedisStore) Get(key string) (RedisValueType, error) {
 	v, ok := store.Items[RedisEntryKey(key)]
 	if !ok {
-		return NULL_BULK_STRING, errors.New("key does not exist")
+		return REDIS_NULL_BULK_STRING, errors.New("key does not exist")
 	}
 
 	isExpired := store.IsEntryExpired(v)
 	if isExpired {
-		return NULL_BULK_STRING, errors.New("key expired")
+		return REDIS_NULL_BULK_STRING, errors.New("key expired")
 	}
 
-	return v.value, nil
+	return v.value.(RedisValueType), nil
+}
+
+func (store *RedisStore) RPush(key string, values []string) (string, error) {
+	list, ok := store.Items[RedisEntryKey(key)]
+	if !ok {
+		list = RedisEntryValue{
+			value: values,
+		}
+
+		store.Items[RedisEntryKey(key)] = list
+		length := len(list.value.([]string))
+		return strconv.Itoa(length), nil
+	}
+
+	_list, ok := list.value.([]string)
+	if !ok {
+		return "", errors.New("not a list")
+	}
+
+	list.value = append(_list, values...)
+
+	return strconv.Itoa(len(list.value.([]string))), nil
 }
 
 func (store *RedisStore) IsEntryExpired(v RedisEntryValue) bool {

@@ -73,3 +73,15 @@ func TestSetWithEXValueCommand(t *testing.T) {
 		t.Errorf("expected %s, got %s", expected, actual)
 	}
 }
+
+func TestRPushCommand(t *testing.T) {
+	// RPUSH list_key "element"
+	arg := "*3\r\n$5\r\nRPUSH\r\n$9\r\npineapple\r\n$5\r\ngrape\r\n"
+
+	expected := ":1\r\n"
+	actual := handleIncomingCommand([]byte(arg))
+
+	if actual != expected {
+		t.Errorf("expected %q, got %q", expected, actual)
+	}
+}

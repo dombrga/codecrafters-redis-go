@@ -10,6 +10,7 @@ import (
 )
 
 const REDIS_BULK_STRING = "$%d\r\n%s\r\n"
+const REDIS_RESP_INTEGER = ":%s\r\n"
 
 type RedisCommandHandlers struct {
 	Store *store.RedisStore
@@ -48,12 +49,26 @@ func (h *RedisCommandHandlers) HandleSet(args []string) string {
 }
 
 func (h *RedisCommandHandlers) HandleGet(args []string) string {
-	v, err := h.Store.Get(args[0])
+	val, err := h.Store.Get(args[0])
+	fmt.Printf("val: %q\n", val)
+	if err != nil {
+		return string(val)
+	}
+
+	return fmt.Sprintf(REDIS_BULK_STRING, len(val), val)
+}
+
+func (h *RedisCommandHandlers) HandleRPush(args []string) string {
+	key := args[0]
+	rpushArgs := args[1:]
+	// fmt.Println("RPUSH args:", args, key, rpushArgs)
+
+	v, err := h.Store.RPush(key, rpushArgs)
 	if err != nil {
 		return string(v)
 	}
 
-	return fmt.Sprintf(REDIS_BULK_STRING, len(v), v)
+	return fmt.Sprintf(REDIS_RESP_INTEGER, v)
 }
 
 // func (h *RedisCommandHandlers) HandleSetCommand(respInput []string) string {
