@@ -26,11 +26,10 @@ var _ = os.Exit
 
 // var redisStore = map[string]any{}
 
-var redisStore1 = store.RedisStore{
-	Items: map[store.RedisEntryKey]store.RedisEntryValue{},
-}
-
 func main() {
+	redisStore := &store.RedisStore{
+		Items: map[store.RedisEntryKey]store.RedisEntryValue{},
+	}
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
@@ -61,7 +60,7 @@ func main() {
 					return
 				}
 
-				resp := handleIncomingCommand(b[:n])
+				resp := handleIncomingCommand(b[:n], redisStore)
 				fmt.Println("resp", resp)
 				conn.Write([]byte(resp))
 			}
@@ -69,19 +68,19 @@ func main() {
 	}
 }
 
-func handleIncomingCommand(_input []byte) string {
-	res := getResponse(_input)
+func handleIncomingCommand(_input []byte, s *store.RedisStore) string {
+	res := getResponse(_input, s)
 	// fmt.Println("res", res)
 
 	return res
 }
 
-func getResponse(_input []byte) string {
-	redisHandler := handlers.NewRedisHandler(&redisStore1)
+func getResponse(_input []byte, s *store.RedisStore) string {
+	redisHandler := handlers.NewRedisHandler(s)
 
-	// args = ["SET", "foo", "bar", "PX", "5000"]
+	// args example: ["SET", "foo", "bar", "PX", "5000"]
 	args, _ := parser.ParseRESP(_input)
-	fmt.Println("args", args)
+	// fmt.Println("args", args)
 
 	cmd := strings.ToUpper(args[0])
 	// fmt.Printf("The command is %s\n", cmd)

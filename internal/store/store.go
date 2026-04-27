@@ -41,7 +41,7 @@ func (store *RedisStore) Get(key string) (RedisValueType, error) {
 		return REDIS_NULL_BULK_STRING, errors.New("key does not exist")
 	}
 
-	isExpired := store.IsEntryExpired(v)
+	isExpired := store.isEntryExpired(v)
 	if isExpired {
 		return REDIS_NULL_BULK_STRING, errors.New("key expired")
 	}
@@ -49,6 +49,7 @@ func (store *RedisStore) Get(key string) (RedisValueType, error) {
 	return v.value.(RedisValueType), nil
 }
 
+// The RPUSH command is used to append elements to a list. If the list doesn't exist, it is created first.
 func (store *RedisStore) RPush(key string, values []string) (string, error) {
 	list, ok := store.Items[RedisEntryKey(key)]
 	if !ok {
@@ -67,11 +68,12 @@ func (store *RedisStore) RPush(key string, values []string) (string, error) {
 	}
 
 	list.value = append(_list, values...)
+	store.Items[RedisEntryKey(key)] = list
 
 	return strconv.Itoa(len(list.value.([]string))), nil
 }
 
-func (store *RedisStore) IsEntryExpired(v RedisEntryValue) bool {
+func (store *RedisStore) isEntryExpired(v RedisEntryValue) bool {
 	if v.expiresAt.IsZero() {
 		return false
 	}
