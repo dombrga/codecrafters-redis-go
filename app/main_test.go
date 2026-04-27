@@ -113,3 +113,15 @@ func TestRPushToExistingList(t *testing.T) {
 		t.Errorf("expected %q, got %q", expected, actual)
 	}
 }
+
+func TestRPushMultipleItems(t *testing.T) {
+	store := newTestStore()
+	arg1 := "*4\r\n$5\r\nRPUSH\r\n$9\r\npineapple\r\n$5\r\ngrape\r\n$4\r\npear\r\n"
+
+	expected := ":2\r\n"
+	actual := handleIncomingCommand([]byte(arg1), store)
+
+	if actual != expected {
+		t.Errorf("expected %q, got %q", expected, actual)
+	}
+}
