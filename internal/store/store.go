@@ -3,10 +3,12 @@ package store
 import (
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 )
 
 const REDIS_NULL_BULK_STRING = "$-1\r\n"
+const REDIS_EMPTY_ARRAY = "*0\r\n"
 
 type RedisEntryKey string
 type RedisValueType string
@@ -71,6 +73,30 @@ func (store *RedisStore) RPush(key string, values []string) (string, error) {
 	store.Items[RedisEntryKey(key)] = list
 
 	return strconv.Itoa(len(list.value.([]string))), nil
+}
+
+func (store *RedisStore) LRange(key string, start int, stop int) (string, error) {
+	list, ok := store.Items[RedisEntryKey(key)]
+	if !ok {
+		return REDIS_EMPTY_ARRAY, errors.New("key does not exists.")
+	}
+
+	_list, ok := list.value.([]string)
+	if !ok {
+		return REDIS_EMPTY_ARRAY, errors.New("not a slice")
+	}
+
+	if start > stop {
+		return REDIS_EMPTY_ARRAY, errors.New("start higher than stop.")
+	}
+	if start >= len(_list) {
+		return REDIS_EMPTY_ARRAY, errors.New("start is out of bounds.")
+	}
+	if stop >= len(_list) {
+		return strings.Join(_list[start:], " "), nil
+	}
+
+	return strings.Join(_list[start:stop+1], " "), nil
 }
 
 func (store *RedisStore) isEntryExpired(v RedisEntryValue) bool {

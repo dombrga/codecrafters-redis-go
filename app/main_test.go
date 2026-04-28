@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/codecrafters-io/redis-starter-go/internal/helpers"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
@@ -120,6 +121,23 @@ func TestRPushMultipleItems(t *testing.T) {
 
 	expected := ":2\r\n"
 	actual := handleIncomingCommand([]byte(arg1), store)
+
+	if actual != expected {
+		t.Errorf("expected %q, got %q", expected, actual)
+	}
+}
+
+func TestLRange(t *testing.T) {
+	store := newTestStore()
+	arg1 := helpers.EncodeAsRESPArray(`RPUSH list_key "a" "b" "c" "d" "e"`)
+	handleIncomingCommand([]byte(arg1), store)
+
+	fmt.Println("store:", store.Items)
+
+	arg2 := helpers.EncodeAsRESPArray(`LRANGE list_key 0 2`)
+
+	expected := "*2\r\n$1\r\na\r\n$1\r\nb\r\n"
+	actual := handleIncomingCommand([]byte(arg2), store)
 
 	if actual != expected {
 		t.Errorf("expected %q, got %q", expected, actual)

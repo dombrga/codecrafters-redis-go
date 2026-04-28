@@ -96,6 +96,8 @@ func getResponse(_input []byte, s *store.RedisStore) string {
 		return redisHandler.HandleGet(args[1:])
 	case "RPUSH":
 		return redisHandler.HandleRPush(args[1:])
+	case "LRANGE":
+		return redisHandler.HandleLRange(args[1:])
 	}
 
 	return "not a valid command"

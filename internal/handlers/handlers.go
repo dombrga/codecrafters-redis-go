@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/codecrafters-io/redis-starter-go/internal/helpers"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
@@ -74,4 +75,27 @@ func (h *RedisCommandHandlers) HandleRPush(args []string) string {
 	}
 
 	return fmt.Sprintf(REDIS_RESP_INTEGER, v)
+}
+
+func (h *RedisCommandHandlers) HandleLRange(args []string) string {
+	fmt.Println("Lrange:", args)
+	key, start, stop := args[0], args[1], args[2]
+
+	_start, err := strconv.Atoi(start)
+	if err != nil {
+		return "incorrect argument for LRANGE command."
+	}
+	_stop, err := strconv.Atoi(stop)
+	if err != nil {
+		return "incorrect argument for LRANGE command."
+	}
+
+	v, err := h.Store.LRange(key, _start, _stop)
+	if err != nil {
+		return string(v)
+	}
+	fmt.Printf("lrange val: %q\n", v)
+	fmt.Printf("lrange val as resp array: %q :: %q\n", v, helpers.EncodeAsRESPArray(v))
+
+	return helpers.EncodeAsRESPArray(v)
 }
