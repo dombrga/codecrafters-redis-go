@@ -1,3 +1,4 @@
+dir ?= ./app
 craft:
 	codecrafters test
 test:
