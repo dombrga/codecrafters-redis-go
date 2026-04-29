@@ -9,7 +9,7 @@ import (
 )
 
 func newTestStore() *store.RedisStore {
-	return &store.RedisStore{Items: map[store.RedisEntryKey]store.RedisEntryValue{}}
+	return &store.RedisStore{Items: map[string]store.RedisEntryValue{}}
 }
 
 func TestPingCommand(t *testing.T) {

@@ -28,7 +28,7 @@ var _ = os.Exit
 
 func main() {
 	redisStore := &store.RedisStore{
-		Items: map[store.RedisEntryKey]store.RedisEntryValue{},
+		Items: map[string]store.RedisEntryValue{},
 	}
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")

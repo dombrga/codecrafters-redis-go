@@ -14,7 +14,6 @@ type RedisEntryKey string
 type RedisValueType string
 
 // type RedisValueType interface { string | []string | int | float64 }
-// type RedisValueType1
 
 type RedisEntryValue struct {
 	value     any
@@ -22,7 +21,7 @@ type RedisEntryValue struct {
 }
 
 type RedisStore struct {
-	Items map[RedisEntryKey]RedisEntryValue
+	Items map[string]RedisEntryValue
 }
 
 func (store *RedisStore) Set(key string, value string, ttl time.Duration) {
@@ -34,11 +33,11 @@ func (store *RedisStore) Set(key string, value string, ttl time.Duration) {
 		entry.expiresAt = time.Now().Add(ttl)
 	}
 
-	store.Items[RedisEntryKey(key)] = entry
+	store.Items[key] = entry
 }
 
 func (store *RedisStore) Get(key string) (RedisValueType, error) {
-	v, ok := store.Items[RedisEntryKey(key)]
+	v, ok := store.Items[key]
 	if !ok {
 		return REDIS_NULL_BULK_STRING, errors.New("key does not exist")
 	}
@@ -53,13 +52,13 @@ func (store *RedisStore) Get(key string) (RedisValueType, error) {
 
 // The RPUSH command is used to append elements to a list. If the list doesn't exist, it is created first.
 func (store *RedisStore) RPush(key string, values []string) (string, error) {
-	list, ok := store.Items[RedisEntryKey(key)]
+	list, ok := store.Items[key]
 	if !ok {
 		list = RedisEntryValue{
 			value: values,
 		}
 
-		store.Items[RedisEntryKey(key)] = list
+		store.Items[key] = list
 		length := len(list.value.([]string))
 		return strconv.Itoa(length), nil
 	}
@@ -70,13 +69,13 @@ func (store *RedisStore) RPush(key string, values []string) (string, error) {
 	}
 
 	list.value = append(_list, values...)
-	store.Items[RedisEntryKey(key)] = list
+	store.Items[key] = list
 
 	return strconv.Itoa(len(list.value.([]string))), nil
 }
 
 func (store *RedisStore) LRange(key string, start int, stop int) (string, error) {
-	list, ok := store.Items[RedisEntryKey(key)]
+	list, ok := store.Items[key]
 	if !ok {
 		return REDIS_EMPTY_ARRAY, errors.New("key does not exists.")
 	}
